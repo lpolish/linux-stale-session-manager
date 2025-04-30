@@ -1,0 +1,4 @@
+# This file is auto-generated - DO NOT EDIT MANUALLY
+# Verify with: sha256sum -c checksums.txt
+
+ccbf23637e66de35c3f019de6061b2f2fb72cf774595c9bac033c643b575a9a7  linux-stale-session-manager.sh

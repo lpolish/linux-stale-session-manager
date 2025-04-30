@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Enhanced Stale User Session Manager
+# Linux Enhanced Stale User Session Manager
 # Description: Interactive tool to identify and terminate stale user sessions
-# Author: Your Name
+# Author: Luis Pulido Diaz
 # Version: 2.0
-# Date: $(date +%Y-%m-%d)
+# Date: 2025-04-30
 
 # Configuration
 CONFIG_FILE="/etc/stale_session_manager.conf"

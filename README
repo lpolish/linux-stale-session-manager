@@ -19,10 +19,10 @@ KEY FEATURES:
 INSTALLATION METHODS:
 
 1. ONE-LINE WEB INSTALL (RECOMMENDED):
-   curl -sSL https://raw.githubusercontent.com/[your-account]/ubuntu-stale-session-manager/main/install.sh | sudo bash
+   curl -sSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/refs/heads/main/install.sh | sudo bash
 
 2. MANUAL INSTALLATION:
-   wget https://raw.githubusercontent.com/[your-account]/ubuntu-stale-session-manager/main/install.sh
+   wget https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/refs/heads/main/install.sh
    chmod +x install.sh
    sudo ./install.sh
 
@@ -88,5 +88,5 @@ LAST UPDATED: 2025-04-30
 
 AUTHOR: Luis Pulido Diaz
 LICENSE: MIT
-REPORT ISSUES: 
+REPORT ISSUES: https://github.com/lpolish/linux-stale-session-manager/issues
 =============================================
