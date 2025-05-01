@@ -3,88 +3,104 @@ UBUNTU STALE SESSION MANAGER - README
 =============================================
 
 DESCRIPTION:
-This tool provides system administrators with a robust solution for managing stale user sessions on Ubuntu servers. It features both interactive menu-driven operation and command-line options for automation.
+Enterprise-grade solution for managing stale user sessions on Linux servers. Now with cryptographic verification and enhanced security.
 
 KEY FEATURES:
-- Interactive terminal menu system
-- Configurable idle time threshold
-- User whitelist protection
-- Multiple termination methods (SIGTERM/SIGKILL)
-- Email notification capability
-- Dry-run mode for testing
-- Comprehensive logging
-- Easy installation/uninstallation
-- Systemd service integration
+✓ Interactive terminal menu system
+✓ Configurable idle thresholds (1m-9999m)
+✓ User whitelist protection
+✓ Multiple termination methods (SIGTERM/SIGKILL)
+✓ Email/Slack notifications
+✓ Dry-run mode for testing
+✓ Comprehensive audit logging
+✓ Systemd/cron integration
+✓ Cryptographic integrity verification (NEW)
 
 INSTALLATION METHODS:
 
-1. ONE-LINE WEB INSTALL (RECOMMENDED):
-   curl -sSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/refs/heads/main/install.sh | sudo bash
+1. SECURE VERIFIED INSTALL (RECOMMENDED):
+   # Downloads script + verifies checksum before execution
+   curl -fsSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/main/install.sh | sudo bash -s -- --verify
 
-2. MANUAL INSTALLATION:
-   wget https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/refs/heads/main/install.sh
+2. MANUAL VERIFIED INSTALL:
+   wget https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/main/{install.sh,checksums.sha256}
+   sha256sum -c checksums.sha256 --ignore-missing
    chmod +x install.sh
-   sudo ./install.sh
+   sudo ./install.sh --verify
 
-3. UNINSTALLATION:
-   sudo /usr/local/bin/stale-session-manager --uninstall
-   OR
-   sudo ./install.sh --uninstall
+3. LEGACY INSTALL (UNVERIFIED):
+   curl -sSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/main/install.sh | sudo bash
 
-DEPENDENCIES:
-- mailutils (for email notifications)
-- curl or wget (for web installation)
-- Standard Ubuntu server utilities
+UNINSTALLATION:
+sudo stale-session-manager --uninstall
+OR
+sudo bash install.sh --uninstall
+
+SECURITY ENHANCEMENTS (v2.2):
+- SHA-256 checksum verification
+- Download integrity checking
+- Secure temp file handling
+- Privilege separation
+- Audit logging
 
 CONFIGURATION:
-The script automatically creates a config file at:
+Primary config file:
 /etc/stale_session_manager.conf
 
-You can edit this file directly or use the built-in configuration menu.
+Configuration options:
+- MAX_IDLE_MINUTES=120
+- WHITELIST=(root admin)
+- NOTIFY_ADMIN=true/false  
+- ADMIN_EMAIL="your@email"
+- LOG_LEVEL="verbose" (NEW)
 
-AUTOMATED CLEANING:
-The installer creates a systemd service for scheduled cleaning.
+AUTOMATION OPTIONS:
 
-To enable daily at 3 AM:
-sudo systemctl enable stale-session-cleaner.timer
+1. SYSTEMD (Recommended):
+   sudo systemctl enable stale-session-cleaner.timer  # Daily at 3AM
 
-Service configuration:
-/etc/systemd/system/stale-session-cleaner.service
+2. CRON:
+   0 3 * * * /usr/local/bin/stale-session-manager --idle 60 --notify
 
-USAGE:
+3. MANUAL RUN:
+   sudo stale-session-manager --idle 30 --whitelist "admin,backup"
+
+USAGE EXAMPLES:
 Interactive Mode:
   sudo stale-session-manager
 
-Command Line Options:
-  --dry-run    Simulation mode (no actual termination)
-  --force      Use SIGKILL if SIGTERM fails
-  --idle N     Set idle threshold in minutes
-  --notify     Enable email notifications
-  --email      Set admin email address
-  --whitelist  Set protected users (comma separated)
-  -h, --help   Show help message
+Quick Clean:
+  sudo stale-session-manager --idle 120 --force
 
-CRON ALTERNATIVE:
-To run daily at 3 AM with 60 minute idle threshold:
-0 3 * * * /usr/local/bin/stale-session-manager --idle 60 --notify
+Dry Run:
+  sudo stale-session-manager --dry-run --idle 60
+
+FILE LOCATIONS:
+├── /usr/local/bin/stale-session-manager
+├── /etc/stale_session_manager.conf
+├── /var/log/stale_session_manager.log
+└── /etc/systemd/system/stale-session-cleaner.service
 
 LOGGING:
-All activities are logged to:
+All activities are logged with timestamps:
 /var/log/stale_session_manager.log
 
-FILES INSTALLED:
-- /usr/local/bin/stale-session-manager (main script)
-- /etc/stale_session_manager.conf (configuration)
-- /var/log/stale_session_manager.log (log file)
-- /etc/systemd/system/stale-session-cleaner.service (service file)
+Sample log entry:
+[2025-05-15 03:00:01] Terminated user 'jdoe' on pts/3 (idle: 125 minutes)
 
-SECURITY NOTES:
-1. Always verify scripts from external sources
-2. The web installation uses HTTPS for security
-3. Consider reviewing the script before pipe-to-bash installation
+TROUBLESHOOTING:
+Q: Checksum verification fails?
+A: Run: curl -fsSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/main/install.sh | sudo bash -- --verify
 
-VERSION: 2.1
-LAST UPDATED: 2025-04-30
+Q: Email notifications not working?
+A: Verify mailutils is installed and check /var/log/mail.log
+
+VERSION: 2.2 (2025-05-15)
+CHANGES:
+- Added cryptographic verification
+- Enhanced security controls
+- Improved logging
+- Configurable log levels
 
 AUTHOR: Luis Pulido Diaz
 LICENSE: MIT
