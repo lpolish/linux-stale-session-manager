@@ -1,0 +1,40 @@
+name: Update Checksums
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'linux-stale-session-manager.sh'
+      - 'install.sh'
+  workflow_dispatch:
+
+jobs:
+  update-checksums:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Generate checksums
+      run: |
+        {
+          sha256sum linux-stale-session-manager.sh
+          sha256sum install.sh
+        } > checksums.sha256
+
+        echo "Generated checksums:"
+        cat checksums.sha256
+
+    - name: Commit changes
+      if: github.ref == 'refs/heads/main'
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+        git diff --quiet && git diff --staged --quiet || {
+          git add checksums.sha256
+          git commit -m "Update checksums [skip ci]"
+          git push
+        }
