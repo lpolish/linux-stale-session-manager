@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Ubuntu Stale Session Manager Installer with Checksum Verification
+# Linux Stale Session Manager Installer with Checksum Verification
 # Version: 2.0
 # License: MIT
 
 # Configuration
-REPO_OWNER="your-github-username"
-REPO_NAME="your-repo-name"
+REPO_OWNER="lpolish"
+REPO_NAME="linux-stale-session-manager"
 BRANCH="main"
 BASE_URL="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}"
 
