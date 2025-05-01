@@ -5,10 +5,7 @@
 # License: MIT
 
 # Configuration
-REPO_OWNER="lpolish"
-REPO_NAME="linux-stale-session-manager"
-BRANCH="main"
-BASE_URL="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}"
+BASE_URL="https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/refs/heads/main"
 
 # Paths
 BIN_PATH="/usr/local/bin/stale-session-manager"
