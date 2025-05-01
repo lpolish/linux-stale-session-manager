@@ -1,7 +1,5 @@
 # Linux Stale Session Manager
 
-[![Checksum Verification](https://github.com/lpolish/linux-stale-session-manager/actions/workflows/update-checksums.yml/badge.svg)](https://github.com/lpolish/linux-stale-session-manager/actions)
-
 ## Description
 
 Enterprise-grade solution for managing stale user sessions on Linux servers with cryptographic verification and enhanced security.
