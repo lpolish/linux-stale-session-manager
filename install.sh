@@ -56,7 +56,10 @@ verify_checksums() {
     # Download checksum file
     secure_download "${BASE_URL}/checksums.sha256" "${TMP_DIR}/checksums.sha256"
     
-    # Verify all files
+    # Download the main script for verification
+    secure_download "${BASE_URL}/linux-stale-session-manager.sh" "${TMP_DIR}/linux-stale-session-manager.sh"
+    
+    # Verify main script
     if ! (cd "$TMP_DIR" && sha256sum -c checksums.sha256 --quiet); then
         echo -e "${RED}ERROR: Checksum verification failed!${NC}"
         echo -e "${YELLOW}Possible causes:"
@@ -123,11 +126,7 @@ EOL
 install() {
     check_root
 
-    # Download all necessary files
-    secure_download "${BASE_URL}/linux-stale-session-manager.sh" "${TMP_DIR}/linux-stale-session-manager.sh"
-    secure_download "${BASE_URL}/install.sh" "${TMP_DIR}/install.sh"
-
-    # Verify checksums
+    # Download and verify files
     verify_checksums
 
     # Install main script
