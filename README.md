@@ -1,13 +1,12 @@
-# UBUNTU STALE SESSION MANAGER
+# Linux Stale Session Manager
 
-# Ubuntu Stale Session Manager
 [![Checksum Verification](https://github.com/lpolish/linux-stale-session-manager/actions/workflows/update-checksums.yml/badge.svg)](https://github.com/lpolish/linux-stale-session-manager/actions)
 
-## DESCRIPTION
+## Description
 
 Enterprise-grade solution for managing stale user sessions on Linux servers with cryptographic verification and enhanced security.
 
-## KEY FEATURES
+## Key features
 
 - Interactive terminal menu system
 - Configurable idle thresholds (1m-9999m)
@@ -19,19 +18,19 @@ Enterprise-grade solution for managing stale user sessions on Linux servers with
 - Systemd/cron integration
 - Cryptographic integrity verification (NEW)
 
-## INSTALLATION METHODS
+## Installation methods
 
 ### Secure (recommended) installation
 
 ```
 # run with --verify to ensure checksums are good
-curl -fsSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/main/install.sh | sudo bash -s -- --verify
+curl -fsSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/refs/heads/main/install.sh | sudo bash -s -- --verify
 ```
 
 ### Manual installation
 
 ```
-wget https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/main/{install.sh,checksums.sha256}
+wget https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/refs/heads/main/{install.sh,checksums.sha256}
 sha256sum -c checksums.sha256 --ignore-missing
 chmod +x install.sh
 sudo ./install.sh --verify
@@ -40,10 +39,10 @@ sudo ./install.sh --verify
 ### Legacy install (no checksum verification)
 
 ```
-curl -sSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/main/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/refs/heads/main/install.sh | sudo bash
 ```
 
-## UNINSTALL
+## Uninstall
 
 ```
 sudo stale-session-manager --uninstall
@@ -54,7 +53,7 @@ or
 sudo bash install.sh --uninstall
 ```
 
-## SECURITY ENHANCEMENTS (v2.2)
+## Security enhancements (v2.2)
 
 - SHA-256 checksum verification
 - Download integrity checking
@@ -62,7 +61,7 @@ sudo bash install.sh --uninstall
 - Privilege separation
 - Audit logging
 
-## CONFIGURATION
+## Configuration
 
 Primary config file:
 
@@ -80,27 +79,27 @@ ADMIN_EMAIL="your@email"
 LOG_LEVEL="verbose" (NEW)
 ```
 
-## AUTOMATION OPTIONS
+## Automation Options
 
-1. **SYSTEMD** (Recommended):
+1. **systemd** (Recommended):
 
 ```
 sudo systemctl enable stale-session-cleaner.timer  # Daily at 3AM
 ```
 
-2. **CRON**:
+2. **Cron**:
 
 ```
 0 3 * * * /usr/local/bin/stale-session-manager --idle 60 --notify
 ```
 
-3. **MANUAL RUN**:
+3. **Manual run**:
 
 ```
 sudo stale-session-manager --idle 30 --whitelist "admin,backup"
 ```
 
-## USAGE EXAMPLES
+## Usage examples
 
 **Interactive Mode**:
 
@@ -120,7 +119,7 @@ sudo stale-session-manager --idle 120 --force
 sudo stale-session-manager --dry-run --idle 60
 ```
 
-## FILE LOCATIONS
+## File Locations
 
 ```
 /usr/local/bin/stale-session-manager
@@ -129,14 +128,14 @@ sudo stale-session-manager --dry-run --idle 60
 /etc/systemd/system/stale-session-cleaner.service
 ```
 
-## LOGGING
+## Logging
 All activities are logged with timestamps:
 
 ```
 [2025-05-15 03:00:01] Terminated user 'jdoe' on pts/3 (idle: 125 minutes)
 ```
 
-## TROUBLESHOOTING
+## Troubleshooting
 **Q**: Checksum verification fails?
 **A**: Run:
 
@@ -151,7 +150,7 @@ curl -fsSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager
 /var/log/mail.log
 ```
 
-## VERSION INFO
+## Version info
 
 **Version**: 2.2 (2025-04-30)
 
