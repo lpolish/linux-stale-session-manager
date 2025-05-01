@@ -6,15 +6,15 @@ Enterprise-grade solution for managing stale user sessions on Linux servers with
 
 ## KEY FEATURES
 
-✓ Interactive terminal menu system
-✓ Configurable idle thresholds (1m-9999m)
-✓ User whitelist protection
-✓ Multiple termination methods (SIGTERM/SIGKILL)
-✓ Email/Slack notifications
-✓ Dry-run mode for testing 
-✓ Comprehensive audit logging
-✓ Systemd/cron integration
-✓ Cryptographic integrity verification (NEW)
+- Interactive terminal menu system
+- Configurable idle thresholds (1m-9999m)
+- User whitelist protection
+- Multiple termination methods (SIGTERM/SIGKILL)
+- Email/Slack notifications
+- Dry-run mode for testing 
+- Comprehensive audit logging
+- Systemd/cron integration
+- Cryptographic integrity verification (NEW)
 
 ## INSTALLATION METHODS
 
