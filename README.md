@@ -160,5 +160,7 @@ curl -fsSL https://raw.githubusercontent.com/lpolish/linux-stale-session-manager
 - Configurable log levels
 
 **Author**: Luis Pulido Diaz
+
 **License**: MIT
+
 **Issues**: https://github.com/lpolish/linux-stale-session-manager/issues 
