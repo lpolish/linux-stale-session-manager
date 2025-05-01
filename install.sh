@@ -1,13 +1,18 @@
 #!/bin/bash
 
-# Ubuntu Stale Session Manager Installer
-# Version: 1.0
+# Ubuntu Stale Session Manager Installer with Checksum Verification
+# Version: 2.0
 # License: MIT
 
 # Configuration
-SCRIPT_URL="https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/main/linux-stale-session-manager.sh"
-CONFIG_FILE="/etc/stale_session_manager.conf"
+REPO_OWNER="your-github-username"
+REPO_NAME="your-repo-name"
+BRANCH="main"
+BASE_URL="https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}"
+
+# Paths
 BIN_PATH="/usr/local/bin/stale-session-manager"
+CONFIG_FILE="/etc/stale_session_manager.conf"
 LOG_FILE="/var/log/stale_session_manager.log"
 SERVICE_FILE="/etc/systemd/system/stale-session-cleaner.service"
 
@@ -17,7 +22,10 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Check if running as root
+# Temp directory
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT
+
 check_root() {
     if [[ $EUID -ne 0 ]]; then
         echo -e "${RED}Error: This script must be run as root${NC}"
@@ -25,118 +33,80 @@ check_root() {
     fi
 }
 
-detect_distro() {
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-        echo $ID
-    elif [ -f /etc/redhat-release ]; then
-        echo "rhel"
-    else
-        echo "unknown"
-    fi
-}
-
-# Secure download function
 secure_download() {
+    local url=$1
+    local output=$2
+    
     if command -v curl &> /dev/null; then
-        curl -sSL "$1" -o "$2"
+        if ! curl -fsSL "$url" -o "$output"; then
+            echo -e "${RED}Error: Failed to download ${url}${NC}"
+            exit 1
+        fi
     elif command -v wget &> /dev/null; then
-        wget -qO "$2" "$1"
+        if ! wget -qO "$output" "$url"; then
+            echo -e "${RED}Error: Failed to download ${url}${NC}"
+            exit 1
+        fi
     else
-        echo -e "${RED}Error: Neither curl nor wget found. Please install one.${NC}"
+        echo -e "${RED}Error: Need curl or wget to download files${NC}"
         exit 1
     fi
+}
 
-    if [[ ! -s "$2" ]]; then
-        echo -e "${RED}Error: Download failed or empty file${NC}"
+verify_checksums() {
+    echo -e "${YELLOW}Verifying checksums...${NC}"
+    
+    # Download checksum file
+    secure_download "${BASE_URL}/checksums.sha256" "${TMP_DIR}/checksums.sha256"
+    
+    # Verify all files
+    if ! (cd "$TMP_DIR" && sha256sum -c checksums.sha256 --quiet); then
+        echo -e "${RED}ERROR: Checksum verification failed!${NC}"
+        echo -e "${YELLOW}Possible causes:"
+        echo "- File corruption during download"
+        echo "- Security breach (files modified on server)"
+        echo "- Outdated checksums (contact maintainer)${NC}"
         exit 1
     fi
 }
 
-# Verify script checksum (placeholder - replace with actual verification)
-verify_checksum() {
-    local file_path=$1
-    local expected_sha
-
-    # Get the expected SHA256 from GitHub
-    if ! expected_sha=$(fetch_checksum); then
-        echo -e "${RED}Error: Failed to fetch checksum${NC}"
-        return 1
-    fi
-
-    # Calculate actual SHA256
-    actual_sha=$(sha256sum "$file_path" | awk '{print $1}')
-
-    if [[ "$expected_sha" != "$actual_sha" ]]; then
-        echo -e "${RED}Error: Checksum verification failed${NC}"
-        echo -e "Expected: $expected_sha"
-        echo -e "Actual:   $actual_sha"
-        return 1
-    fi
-
-    return 0
-}
-
-fetch_checksum() {
-    local checksum_url="https://raw.githubusercontent.com/lpolish/linux-stale-session-manager/main/checksums.txt"
-
-    if command -v curl &> /dev/null; then
-        curl -sSL "$checksum_url" | grep "linux-stale-session-manager.sh" | awk '{print $1}'
-    elif command -v wget &> /dev/null; then
-        wget -qO - "$checksum_url" | grep "linux-stale-session-manager.sh" | awk '{print $1}'
-    else
-        echo -e "${RED}Error: Need curl or wget to fetch checksum${NC}"
-        return 1
-    fi
-}
-
-# Install dependencies
 install_dependencies() {
-    echo -e "${YELLOW}Installing required dependencies...${NC}"
-    case $(detect_distro) in
-        ubuntu|debian)
-            apt-get update
-            apt-get install -y mailutils
-            ;;
-        rhel|centos|fedora)
-            yum install -y mailx
-            ;;
-        *)
-            echo "Please install mail utilities manually"
-            ;;
-    esac
+    echo -e "${YELLOW}Installing dependencies...${NC}"
+    
+    if command -v apt-get &> /dev/null; then
+        apt-get update
+        apt-get install -y mailutils
+    elif command -v yum &> /dev/null; then
+        yum install -y mailx
+    elif command -v dnf &> /dev/null; then
+        dnf install -y mailx
+    else
+        echo -e "${YELLOW}Please install mail utilities manually if needed${NC}"
+    fi
 }
 
-# Install the script
-install() {
-    echo -e "${YELLOW}Installing Ubuntu Stale Session Manager...${NC}"
-
-    # Download the script
-    echo "Downloading latest version..."
-    secure_download "$SCRIPT_URL" "$BIN_PATH"
-
-    # Verify checksum
-    if ! verify_checksum; then
-        echo -e "${RED}Error: Checksum verification failed${NC}"
-        exit 1
-    fi
-
-    # Make executable
-    chmod +x "$BIN_PATH"
-
-    # Create default config if not exists
+setup_config() {
     if [[ ! -f "$CONFIG_FILE" ]]; then
-        echo "MAX_IDLE_MINUTES=120" > "$CONFIG_FILE"
-        echo "WHITELIST=(root admin)" >> "$CONFIG_FILE"
-        echo "NOTIFY_ADMIN=false" >> "$CONFIG_FILE"
-        echo "ADMIN_EMAIL=\"admin@example.com\"" >> "$CONFIG_FILE"
+        echo -e "${YELLOW}Creating default config...${NC}"
+        cat > "$CONFIG_FILE" <<EOL
+# Stale Session Manager Configuration
+MAX_IDLE_MINUTES=120
+WHITELIST=(root admin)
+NOTIFY_ADMIN=false
+ADMIN_EMAIL="admin@example.com"
+EOL
+        chmod 644 "$CONFIG_FILE"
     fi
+}
 
-    # Create log file
+setup_logging() {
     touch "$LOG_FILE"
     chmod 644 "$LOG_FILE"
+}
 
-    # Create systemd service for automated cleaning
+setup_service() {
+    echo -e "${YELLOW}Configuring systemd service...${NC}"
+    
     cat > "$SERVICE_FILE" <<EOL
 [Unit]
 Description=Stale Session Cleaner
@@ -144,90 +114,70 @@ After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=$BIN_PATH --idle 120 --notify
+ExecStart=${BIN_PATH} --idle 120 --notify
 
 [Install]
 WantedBy=multi-user.target
 EOL
 
     systemctl daemon-reload
-
-    echo -e "${GREEN}Installation completed successfully!${NC}"
-    echo -e "You can now run: ${YELLOW}sudo stale-session-manager${NC}"
 }
 
-# Uninstall the script
-uninstall() {
-    echo -e "${YELLOW}Uninstalling Ubuntu Stale Session Manager...${NC}"
-
-    # Remove main script
-    rm -f "$BIN_PATH"
-
-    # Remove config file
-    read -p "Remove configuration file at $CONFIG_FILE? [y/N] " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        rm -f "$CONFIG_FILE"
-    fi
-
-    # Remove log file
-    read -p "Remove log file at $LOG_FILE? [y/N] " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        rm -f "$LOG_FILE"
-    fi
-
-    # Remove systemd service
-    if [[ -f "$SERVICE_FILE" ]]; then
-        systemctl stop stale-session-cleaner 2>/dev/null
-        systemctl disable stale-session-cleaner 2>/dev/null
-        rm -f "$SERVICE_FILE"
-        systemctl daemon-reload
-    fi
-
-    echo -e "${GREEN}Uninstallation completed!${NC}"
-}
-
-# Show usage
-usage() {
-    echo "Ubuntu Stale Session Manager Installer"
-    echo "Usage:"
-    echo "  ./install.sh               - Install the script"
-    echo "  ./install.sh --uninstall   - Remove the script"
-    echo "  curl -sSL [url] | bash     - Install directly from web"
-    echo ""
-    echo "Options:"
-    echo "  --uninstall  - Remove the script and related files"
-    echo "  --help       - Show this help message"
-}
-
-# Main function
-main() {
-    case "$1" in
-        --uninstall)
-            check_root
-            uninstall
-            ;;
-        --help|-h)
-            usage
-            ;;
-        *)
-            check_root
-            install_dependencies
-            install
-            ;;
-    esac
-}
-
-# Check if we're being piped into bash
-if [[ -t 0 ]] && [[ $# -eq 0 ]]; then
-    # Interactive mode
-    main "$@"
-else
-    # Piped mode - install directly
+install() {
     check_root
+
+    # Download all necessary files
+    secure_download "${BASE_URL}/linux-stale-session-manager.sh" "${TMP_DIR}/linux-stale-session-manager.sh"
+    secure_download "${BASE_URL}/install.sh" "${TMP_DIR}/install.sh"
+
+    # Verify checksums
+    verify_checksums
+
+    # Install main script
+    echo -e "${YELLOW}Installing main script...${NC}"
+    install -m 755 "${TMP_DIR}/linux-stale-session-manager.sh" "$BIN_PATH"
+
+    # Setup environment
     install_dependencies
-    secure_download "$SCRIPT_URL" "$BIN_PATH"
-    chmod +x "$BIN_PATH"
-    echo -e "${GREEN}Direct installation completed!${NC}"
+    setup_config
+    setup_logging
+    setup_service
+
+    echo -e "${GREEN}Installation complete!${NC}"
+    echo -e "Run with: ${YELLOW}sudo stale-session-manager${NC}"
+}
+
+uninstall() {
+    check_root
+
+    echo -e "${YELLOW}Uninstalling...${NC}"
+
+    rm -f "$BIN_PATH"
+    systemctl stop stale-session-cleaner 2>/dev/null
+    systemctl disable stale-session-cleaner 2>/dev/null
+    rm -f "$SERVICE_FILE"
+    systemctl daemon-reload
+
+    echo -e "${GREEN}Uninstallation complete!${NC}"
+    echo -e "${YELLOW}Note: Config ($CONFIG_FILE) and logs ($LOG_FILE) were kept.${NC}"
+}
+
+# Main execution
+if [[ "$*" == *"--uninstall"* ]]; then
+    uninstall
+elif [[ "$*" == *"--verify"* ]]; then
+    install
+else
+    echo -e "${RED}WARNING: Unverified installation${NC}"
+    echo "For secure installation with checksum verification, run:"
+    echo -e "${YELLOW}curl -fsSL ${BASE_URL}/install.sh | sudo bash -s -- --verify${NC}"
+    echo ""
+    read -p "Continue without verification? [y/N] " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        install
+    else
+        echo -e "${RED}Installation aborted${NC}"
+        exit 1
+    fi
 fi
